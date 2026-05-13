@@ -1,22 +1,423 @@
-<!DOCTYPE html> 
-<html lang="ja"> 
-<head> 
-  <meta charset="UTF-8" /> 
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" /> 
-  <title>Claude Code Demo App</title> 
-  <style> 
-    body { margin: 0; min-height: 100vh; display: grid; place-items: center; font-family: system-ui, sans-serif; background: #f7f8f5; color: #1f2933; } 
-    main { text-align: center; padding: 40px; } 
-    .label { font-size: 14px; letter-spacing: 0.08em; text-transform: uppercase; color: #6b7280; margin-bottom: 12px; } 
-    h1 { font-size: 40px; margin: 0 0 16px; font-weight: 700; } 
-    p { font-size: 18px; color: #4b5563; margin: 0; } 
-  </style> 
-</head> 
-<body> 
-  <main> 
-    <div class="label">Claude Code Demo</div> 
-    <h1>やってみましょう</h1> 
-    <p>AI駆動開発！</p> 
-  </main> 
-</body> 
-</html> 
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>会えていないお客様チェッカー</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f5f7fb;
+      color: #222;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 32px 16px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+    }
+
+    .description {
+      margin: 0 0 24px;
+      color: #666;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .summary-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    }
+
+    .summary-label {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 8px;
+    }
+
+    .summary-value {
+      font-size: 32px;
+      font-weight: bold;
+    }
+
+    .table-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 900px;
+    }
+
+    th,
+    td {
+      padding: 14px 12px;
+      border-bottom: 1px solid #e5e7eb;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    th {
+      background: #f9fafb;
+      color: #555;
+      font-weight: bold;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .status {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-weight: bold;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .status-urgent {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+
+    .status-priority {
+      background: #ffedd5;
+      color: #c2410c;
+    }
+
+    .status-follow {
+      background: #fef3c7;
+      color: #a16207;
+    }
+
+    .status-ok {
+      background: #dcfce7;
+      color: #15803d;
+    }
+
+    .small {
+      color: #666;
+      font-size: 13px;
+    }
+
+    @media (max-width: 700px) {
+      .summary {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>会えていないお客様チェッカー</h1>
+    <p class="description">
+      顧客ごとの最終接点日をもとに、次にフォローすべきお客様を確認できます。
+    </p>
+
+    <section class="summary">
+      <div class="summary-card">
+        <div class="summary-label">顧客数</div>
+        <div class="summary-value" id="totalCustomers">0</div>
+      </div>
+
+      <div class="summary-card">
+        <div class="summary-label">要フォロー以上の顧客数</div>
+        <div class="summary-value" id="followCustomers">0</div>
+      </div>
+
+      <div class="summary-card">
+        <div class="summary-label">直近30日以内に会った顧客数</div>
+        <div class="summary-value" id="recentCustomers">0</div>
+      </div>
+    </section>
+
+    <section class="table-card">
+      <table>
+        <thead>
+          <tr>
+            <th>顧客名</th>
+            <th>最終接点日</th>
+            <th>最後に会ってからの日数</th>
+            <th>接点回数</th>
+            <th>直近の予定タイトル</th>
+            <th>ステータス</th>
+          </tr>
+        </thead>
+        <tbody id="customerTableBody"></tbody>
+      </table>
+    </section>
+  </div>
+
+  <script>
+    const today = "2026-05-05";
+
+    const calendarEvents = [
+      {
+        customer: "青葉商事",
+        title: "青葉商事 定例ミーティング",
+        date: "2026-04-28",
+        type: "定例",
+        memo: "導入後の利用状況確認"
+      },
+      {
+        customer: "北辰フーズ",
+        title: "北辰フーズ 新サービス提案",
+        date: "2026-04-22",
+        type: "商談",
+        memo: "新プランの提案"
+      },
+      {
+        customer: "みなと物流",
+        title: "みなと物流 オンラインMTG",
+        date: "2026-04-10",
+        type: "フォロー",
+        memo: "見積もり後の確認"
+      },
+      {
+        customer: "東都メディカル",
+        title: "東都メディカル 導入相談",
+        date: "2026-03-18",
+        type: "商談",
+        memo: "導入スケジュール相談"
+      },
+      {
+        customer: "さくら建設",
+        title: "さくら建設 課題ヒアリング",
+        date: "2026-03-02",
+        type: "ヒアリング",
+        memo: "現場部門の課題確認"
+      },
+      {
+        customer: "西新宿デザイン",
+        title: "西新宿デザイン 月次定例",
+        date: "2026-02-25",
+        type: "定例",
+        memo: "契約更新前の確認"
+      },
+      {
+        customer: "南星リテール",
+        title: "南星リテール 店舗展開相談",
+        date: "2026-02-05",
+        type: "商談",
+        memo: "複数店舗展開の相談"
+      },
+      {
+        customer: "白川製作所",
+        title: "白川製作所 フォローアップ",
+        date: "2026-01-20",
+        type: "フォロー",
+        memo: "前回提案後の状況確認"
+      },
+      {
+        customer: "青葉商事",
+        title: "青葉商事 追加相談",
+        date: "2026-04-02",
+        type: "相談",
+        memo: "追加利用部門について相談"
+      },
+      {
+        customer: "北辰フーズ",
+        title: "北辰フーズ 初回商談",
+        date: "2026-03-12",
+        type: "商談",
+        memo: "課題と予算感の確認"
+      },
+      {
+        customer: "東都メディカル",
+        title: "東都メディカル 資料送付後確認",
+        date: "2026-02-18",
+        type: "フォロー",
+        memo: "資料送付後の反応確認"
+      },
+      {
+        customer: "南星リテール",
+        title: "南星リテール 初回ヒアリング",
+        date: "2025-12-18",
+        type: "ヒアリング",
+        memo: "店舗運営課題の確認"
+      },
+      {
+        customer: "神田ソリューションズ",
+        title: "神田ソリューションズ 契約更新相談",
+        date: "2026-04-30",
+        type: "更新相談",
+        memo: "次年度契約について相談"
+      },
+      {
+        customer: "大手町教育ラボ",
+        title: "大手町教育ラボ 初回ヒアリング",
+        date: "2026-01-08",
+        type: "ヒアリング",
+        memo: "研修運営の課題確認"
+      },
+      {
+        customer: "白川製作所",
+        title: "白川製作所 技術部門MTG",
+        date: "2025-12-05",
+        type: "商談",
+        memo: "現場部門向けの提案"
+      }
+    ];
+
+    function getDaysSinceLastContact(lastDate) {
+      const todayDate = new Date(today);
+      const contactDate = new Date(lastDate);
+      const difference = todayDate - contactDate;
+      return Math.floor(difference / (1000 * 60 * 60 * 24));
+    }
+
+    function getStatus(days) {
+      if (days >= 90) {
+        return {
+          text: "至急確認",
+          className: "status-urgent",
+          priority: 1
+        };
+      }
+
+      if (days >= 60) {
+        return {
+          text: "優先フォロー",
+          className: "status-priority",
+          priority: 2
+        };
+      }
+
+      if (days >= 30) {
+        return {
+          text: "要フォロー",
+          className: "status-follow",
+          priority: 3
+        };
+      }
+
+      return {
+        text: "接点あり",
+        className: "status-ok",
+        priority: 4
+      };
+    }
+
+    function createCustomerSummary(events) {
+      const customerMap = {};
+
+      events.forEach(function(event) {
+        if (!customerMap[event.customer]) {
+          customerMap[event.customer] = {
+            customer: event.customer,
+            events: []
+          };
+        }
+
+        customerMap[event.customer].events.push(event);
+      });
+
+      const customers = Object.values(customerMap).map(function(customerData) {
+        const sortedEvents = customerData.events.sort(function(a, b) {
+          return new Date(b.date) - new Date(a.date);
+        });
+
+        const latestEvent = sortedEvents[0];
+        const days = getDaysSinceLastContact(latestEvent.date);
+        const status = getStatus(days);
+
+        return {
+          customer: customerData.customer,
+          lastContactDate: latestEvent.date,
+          daysSinceLastContact: days,
+          contactCount: customerData.events.length,
+          latestTitle: latestEvent.title,
+          statusText: status.text,
+          statusClassName: status.className,
+          statusPriority: status.priority
+        };
+      });
+
+      customers.sort(function(a, b) {
+        if (a.statusPriority !== b.statusPriority) {
+          return a.statusPriority - b.statusPriority;
+        }
+
+        return b.daysSinceLastContact - a.daysSinceLastContact;
+      });
+
+      return customers;
+    }
+
+    function renderSummary(customers) {
+      const totalCustomers = customers.length;
+
+      const followCustomers = customers.filter(function(customer) {
+        return customer.daysSinceLastContact >= 30;
+      }).length;
+
+      const recentCustomers = customers.filter(function(customer) {
+        return customer.daysSinceLastContact <= 30;
+      }).length;
+
+      document.getElementById("totalCustomers").textContent = totalCustomers;
+      document.getElementById("followCustomers").textContent = followCustomers;
+      document.getElementById("recentCustomers").textContent = recentCustomers;
+    }
+
+    function renderTable(customers) {
+      const tableBody = document.getElementById("customerTableBody");
+      tableBody.innerHTML = "";
+
+      customers.forEach(function(customer) {
+        const row = document.createElement("tr");
+
+        row.innerHTML = `
+          <td>
+            <strong>${customer.customer}</strong>
+          </td>
+          <td>${customer.lastContactDate}</td>
+          <td>${customer.daysSinceLastContact}日</td>
+          <td>${customer.contactCount}回</td>
+          <td>
+            ${customer.latestTitle}
+            <div class="small">直近の予定</div>
+          </td>
+          <td>
+            <span class="status ${customer.statusClassName}">
+              ${customer.statusText}
+            </span>
+          </td>
+        `;
+
+        tableBody.appendChild(row);
+      });
+    }
+
+    const customers = createCustomerSummary(calendarEvents);
+
+    renderSummary(customers);
+    renderTable(customers);
+  </script>
+</body>
+</html>
