@@ -6,6 +6,7 @@
   <title>会えていないお客様チェッカー</title>
 
   <style>
+    /* ---- ベース ---- */
     body {
       margin: 0;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -14,24 +15,37 @@
     }
 
     .container {
-      max-width: 1100px;
+      max-width: 1200px;
       margin: 0 auto;
       padding: 32px 16px;
     }
 
     h1 {
-      margin: 0 0 8px;
-      font-size: 28px;
+      margin: 0 0 4px;
+      font-size: 26px;
     }
 
     .description {
-      margin: 0 0 24px;
+      margin: 0 0 8px;
       color: #666;
+      font-size: 14px;
     }
 
+    /* Google Calendar 風サンプルデータである旨の注記 */
+    .data-source-note {
+      margin: 0 0 24px;
+      color: #555;
+      font-size: 12px;
+      padding: 6px 12px;
+      background: #eef2ff;
+      border-left: 3px solid #818cf8;
+      border-radius: 4px;
+    }
+
+    /* ---- サマリーカード ---- */
     .summary {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 16px;
       margin-bottom: 24px;
     }
@@ -43,17 +57,102 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
     }
 
+    /* 「今すぐ確認」カードは赤い上ボーダーで強調 */
+    .summary-card.urgent-card {
+      border-top: 4px solid #dc2626;
+    }
+
     .summary-label {
-      font-size: 14px;
+      font-size: 13px;
       color: #666;
       margin-bottom: 8px;
     }
 
     .summary-value {
-      font-size: 32px;
+      font-size: 36px;
       font-weight: bold;
     }
 
+    .summary-value.urgent-value {
+      color: #dc2626;
+    }
+
+    /* ---- 今すぐ確認すべき顧客エリア ---- */
+    .urgent-section {
+      background: #fff5f5;
+      border: 2px solid #fca5a5;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+
+    .urgent-section-title {
+      font-size: 17px;
+      font-weight: bold;
+      color: #b91c1c;
+      margin: 0 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .urgent-section-subtitle {
+      font-size: 13px;
+      font-weight: normal;
+      color: #888;
+    }
+
+    .urgent-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 12px;
+    }
+
+    /* 「至急確認」カード（赤ボーダー） */
+    .urgent-customer-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 16px;
+      border-left: 5px solid #dc2626;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    /* 「優先フォロー（高額）」カード（オレンジボーダー） */
+    .urgent-customer-card.type-priority {
+      border-left-color: #ea580c;
+    }
+
+    .urgent-customer-name {
+      font-size: 15px;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .urgent-customer-meta {
+      font-size: 13px;
+      color: #555;
+      margin-bottom: 4px;
+    }
+
+    /* 「次に取るべき行動」バッジ */
+    .urgent-action {
+      margin-top: 10px;
+      display: inline-block;
+      font-size: 13px;
+      font-weight: bold;
+      padding: 4px 10px;
+      border-radius: 6px;
+      color: #b91c1c;
+      background: #fee2e2;
+    }
+
+    .urgent-action.type-priority {
+      color: #c2410c;
+      background: #ffedd5;
+    }
+
+    /* ---- テーブルカード ---- */
     .table-card {
       background: #fff;
       border-radius: 16px;
@@ -62,42 +161,65 @@
       overflow-x: auto;
     }
 
+    .table-title {
+      font-size: 15px;
+      font-weight: bold;
+      color: #333;
+      margin: 0 0 16px;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 900px;
+      min-width: 1000px;
     }
 
     th,
     td {
-      padding: 14px 12px;
+      padding: 12px 10px;
       border-bottom: 1px solid #e5e7eb;
       text-align: left;
-      font-size: 14px;
+      font-size: 13px;
     }
 
     th {
       background: #f9fafb;
       color: #555;
       font-weight: bold;
+      white-space: nowrap;
     }
 
     tr:last-child td {
       border-bottom: none;
     }
 
+    /* 行の背景色：ステータスで色分け */
+    tr.row-urgent {
+      background: #fff5f5;
+    }
+
+    tr.row-priority {
+      background: #fff8f2;
+    }
+
+    tr.row-follow {
+      background: #fffbee;
+    }
+
+    /* ---- ステータスバッジ ---- */
     .status {
       display: inline-block;
-      padding: 6px 10px;
+      padding: 5px 10px;
       border-radius: 999px;
       font-weight: bold;
-      font-size: 13px;
+      font-size: 12px;
       white-space: nowrap;
     }
 
+    /* 至急確認：白文字の赤で最も目立たせる */
     .status-urgent {
-      background: #fee2e2;
-      color: #b91c1c;
+      background: #dc2626;
+      color: #fff;
     }
 
     .status-priority {
@@ -115,18 +237,105 @@
       color: #15803d;
     }
 
-    .small {
-      color: #666;
-      font-size: 13px;
+    /* ---- 高額取引ラベル ---- */
+    .label-highvalue {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: bold;
+      background: #fef3c7;
+      color: #b45309;
+      margin-left: 5px;
+      vertical-align: middle;
     }
 
-    @media (max-width: 700px) {
+    /* ---- 優先順位の番号 ---- */
+    .rank-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      font-weight: bold;
+      font-size: 13px;
+      background: #e5e7eb;
+      color: #555;
+    }
+
+    /* ---- 接点履歴（details / summary） ---- */
+    details {
+      margin-top: 2px;
+    }
+
+    summary {
+      cursor: pointer;
+      font-size: 12px;
+      color: #6366f1;
+      user-select: none;
+    }
+
+    summary:hover {
+      text-decoration: underline;
+    }
+
+    .history-list {
+      margin: 8px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .history-item {
+      padding: 6px 0;
+      border-bottom: 1px dashed #ececec;
+      font-size: 12px;
+    }
+
+    .history-item:last-child {
+      border-bottom: none;
+    }
+
+    .history-date {
+      color: #888;
+      margin-right: 5px;
+    }
+
+    .history-type {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 4px;
+      background: #eef2ff;
+      color: #4f46e5;
+      font-size: 11px;
+      margin-right: 4px;
+    }
+
+    .history-memo {
+      color: #888;
+      font-size: 11px;
+      margin-top: 2px;
+    }
+
+    .small {
+      color: #888;
+      font-size: 12px;
+    }
+
+    /* ---- レスポンシブ ---- */
+    @media (max-width: 900px) {
+      .summary {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 600px) {
       .summary {
         grid-template-columns: 1fr;
       }
 
       h1 {
-        font-size: 24px;
+        font-size: 20px;
       }
     }
   </style>
@@ -136,9 +345,13 @@
   <div class="container">
     <h1>会えていないお客様チェッカー</h1>
     <p class="description">
-      顧客ごとの最終接点日をもとに、次にフォローすべきお客様を確認できます。
+      最終接点日と取引金額をもとに、次にフォローすべきお客様を確認できます。
+    </p>
+    <p class="data-source-note">
+      &#128197; このデータは Google Calendar 風のサンプル予定データです（実際の Google Calendar とは連携していません）。
     </p>
 
+    <!-- サマリーカード（4枚）-->
     <section class="summary">
       <div class="summary-card">
         <div class="summary-label">顧客数</div>
@@ -154,18 +367,37 @@
         <div class="summary-label">直近30日以内に会った顧客数</div>
         <div class="summary-value" id="recentCustomers">0</div>
       </div>
+
+      <div class="summary-card urgent-card">
+        <div class="summary-label">今すぐ確認すべき顧客数</div>
+        <div class="summary-value urgent-value" id="urgentCustomers">0</div>
+      </div>
     </section>
 
+    <!-- 今すぐ確認すべき顧客エリア -->
+    <section class="urgent-section" id="urgentSection" style="display:none">
+      <div class="urgent-section-title">
+        &#9888;&#65039; 今すぐ確認すべき顧客
+        <span class="urgent-section-subtitle">（90日以上 または 60日以上の高額取引先）</span>
+      </div>
+      <div class="urgent-cards" id="urgentCards"></div>
+    </section>
+
+    <!-- 顧客別フォロー優先度リスト（テーブル）-->
     <section class="table-card">
+      <div class="table-title">顧客別フォロー優先度リスト</div>
       <table>
         <thead>
           <tr>
+            <th>優先順位</th>
             <th>顧客名</th>
             <th>最終接点日</th>
             <th>最後に会ってからの日数</th>
             <th>接点回数</th>
+            <th>過去取引金額</th>
             <th>直近の予定タイトル</th>
             <th>ステータス</th>
+            <th>接点履歴</th>
           </tr>
         </thead>
         <tbody id="customerTableBody"></tbody>
@@ -174,249 +406,334 @@
   </div>
 
   <script>
+    /* ---- 基準日（今日として計算する日付） ---- */
     const today = "2026-05-05";
 
+    /* ---- Google Calendar 風サンプルデータ ---- */
     const calendarEvents = [
       {
         customer: "青葉商事",
         title: "青葉商事 定例ミーティング",
         date: "2026-04-28",
         type: "定例",
-        memo: "導入後の利用状況確認"
+        memo: "導入後の利用状況確認",
+        amount: 12000000
       },
       {
         customer: "北辰フーズ",
         title: "北辰フーズ 新サービス提案",
         date: "2026-04-22",
         type: "商談",
-        memo: "新プランの提案"
+        memo: "新プランの提案",
+        amount: 8000000
       },
       {
         customer: "みなと物流",
         title: "みなと物流 オンラインMTG",
         date: "2026-04-10",
         type: "フォロー",
-        memo: "見積もり後の確認"
+        memo: "見積もり後の確認",
+        amount: 5000000
       },
       {
         customer: "東都メディカル",
         title: "東都メディカル 導入相談",
         date: "2026-03-18",
         type: "商談",
-        memo: "導入スケジュール相談"
+        memo: "導入スケジュール相談",
+        amount: 15000000
       },
       {
         customer: "さくら建設",
         title: "さくら建設 課題ヒアリング",
         date: "2026-03-02",
         type: "ヒアリング",
-        memo: "現場部門の課題確認"
+        memo: "現場部門の課題確認",
+        amount: 7000000
       },
       {
         customer: "西新宿デザイン",
         title: "西新宿デザイン 月次定例",
         date: "2026-02-25",
         type: "定例",
-        memo: "契約更新前の確認"
+        memo: "契約更新前の確認",
+        amount: 3000000
       },
       {
         customer: "南星リテール",
         title: "南星リテール 店舗展開相談",
         date: "2026-02-05",
         type: "商談",
-        memo: "複数店舗展開の相談"
+        memo: "複数店舗展開の相談",
+        amount: 20000000
       },
       {
         customer: "白川製作所",
         title: "白川製作所 フォローアップ",
         date: "2026-01-20",
         type: "フォロー",
-        memo: "前回提案後の状況確認"
+        memo: "前回提案後の状況確認",
+        amount: 18000000
       },
       {
         customer: "青葉商事",
         title: "青葉商事 追加相談",
         date: "2026-04-02",
         type: "相談",
-        memo: "追加利用部門について相談"
+        memo: "追加利用部門について相談",
+        amount: 12000000
       },
       {
         customer: "北辰フーズ",
         title: "北辰フーズ 初回商談",
         date: "2026-03-12",
         type: "商談",
-        memo: "課題と予算感の確認"
+        memo: "課題と予算感の確認",
+        amount: 8000000
       },
       {
         customer: "東都メディカル",
         title: "東都メディカル 資料送付後確認",
         date: "2026-02-18",
         type: "フォロー",
-        memo: "資料送付後の反応確認"
+        memo: "資料送付後の反応確認",
+        amount: 15000000
       },
       {
         customer: "南星リテール",
         title: "南星リテール 初回ヒアリング",
         date: "2025-12-18",
         type: "ヒアリング",
-        memo: "店舗運営課題の確認"
+        memo: "店舗運営課題の確認",
+        amount: 20000000
       },
       {
         customer: "神田ソリューションズ",
         title: "神田ソリューションズ 契約更新相談",
         date: "2026-04-30",
         type: "更新相談",
-        memo: "次年度契約について相談"
+        memo: "次年度契約について相談",
+        amount: 10000000
       },
       {
         customer: "大手町教育ラボ",
         title: "大手町教育ラボ 初回ヒアリング",
         date: "2026-01-08",
         type: "ヒアリング",
-        memo: "研修運営の課題確認"
+        memo: "研修運営の課題確認",
+        amount: 6000000
       },
       {
         customer: "白川製作所",
         title: "白川製作所 技術部門MTG",
         date: "2025-12-05",
         type: "商談",
-        memo: "現場部門向けの提案"
+        memo: "現場部門向けの提案",
+        amount: 18000000
       }
     ];
 
-    function getDaysSinceLastContact(lastDate) {
+    /* ---- 最終接点日からの経過日数を計算する ---- */
+    function getDaysSince(dateStr) {
       const todayDate = new Date(today);
-      const contactDate = new Date(lastDate);
-      const difference = todayDate - contactDate;
-      return Math.floor(difference / (1000 * 60 * 60 * 24));
+      const targetDate = new Date(dateStr);
+      return Math.floor((todayDate - targetDate) / (1000 * 60 * 60 * 24));
     }
 
+    /* ---- 経過日数からステータスを決める ---- */
     function getStatus(days) {
       if (days >= 90) {
-        return {
-          text: "至急確認",
-          className: "status-urgent",
-          priority: 1
-        };
+        return { text: "至急確認", className: "status-urgent", priority: 1 };
       }
-
       if (days >= 60) {
-        return {
-          text: "優先フォロー",
-          className: "status-priority",
-          priority: 2
-        };
+        return { text: "優先フォロー", className: "status-priority", priority: 2 };
       }
-
       if (days >= 30) {
-        return {
-          text: "要フォロー",
-          className: "status-follow",
-          priority: 3
-        };
+        return { text: "要フォロー", className: "status-follow", priority: 3 };
       }
-
-      return {
-        text: "接点あり",
-        className: "status-ok",
-        priority: 4
-      };
+      return { text: "直近接点あり", className: "status-ok", priority: 4 };
     }
 
-    function createCustomerSummary(events) {
+    /* ---- 取引金額を「〇〇万円」形式で表示する ---- */
+    function formatAmount(amount) {
+      if (amount >= 100000000) {
+        return (amount / 100000000).toFixed(0) + "億円";
+      }
+      if (amount >= 10000) {
+        return (amount / 10000).toFixed(0) + "万円";
+      }
+      return amount.toLocaleString() + "円";
+    }
+
+    /* ---- 顧客ごとにイベントを集計してリストを作る ---- */
+    function buildCustomerList(events) {
+      /* 顧客名をキーにして予定をまとめる */
       const customerMap = {};
 
       events.forEach(function(event) {
         if (!customerMap[event.customer]) {
           customerMap[event.customer] = {
             customer: event.customer,
+            amount: event.amount,
             events: []
           };
         }
-
         customerMap[event.customer].events.push(event);
       });
 
-      const customers = Object.values(customerMap).map(function(customerData) {
-        const sortedEvents = customerData.events.sort(function(a, b) {
+      /* 顧客ごとに集計する */
+      const customers = Object.values(customerMap).map(function(data) {
+        /* 予定を新しい日付順に並べる */
+        const sortedEvents = data.events.slice().sort(function(a, b) {
           return new Date(b.date) - new Date(a.date);
         });
 
         const latestEvent = sortedEvents[0];
-        const days = getDaysSinceLastContact(latestEvent.date);
+        const days = getDaysSince(latestEvent.date);
         const status = getStatus(days);
 
+        /* 取引金額が1000万円以上なら「高額取引」 */
+        const isHighValue = data.amount >= 10000000;
+
+        /* 今すぐ確認すべき顧客の条件：90日以上 または（60日以上 かつ 高額取引） */
+        const isUrgentTarget = days >= 90 || (days >= 60 && isHighValue);
+
         return {
-          customer: customerData.customer,
+          customer: data.customer,
           lastContactDate: latestEvent.date,
-          daysSinceLastContact: days,
-          contactCount: customerData.events.length,
+          daysSince: days,
+          contactCount: data.events.length,
           latestTitle: latestEvent.title,
+          amount: data.amount,
+          isHighValue: isHighValue,
           statusText: status.text,
           statusClassName: status.className,
-          statusPriority: status.priority
+          statusPriority: status.priority,
+          isUrgentTarget: isUrgentTarget,
+          events: sortedEvents
         };
       });
 
+      /* 優先順位：ステータスの緊急度 → 取引金額の大きさ → 経過日数の長さ */
       customers.sort(function(a, b) {
         if (a.statusPriority !== b.statusPriority) {
           return a.statusPriority - b.statusPriority;
         }
-
-        return b.daysSinceLastContact - a.daysSinceLastContact;
+        if (a.amount !== b.amount) {
+          return b.amount - a.amount;
+        }
+        return b.daysSince - a.daysSince;
       });
 
       return customers;
     }
 
+    /* ---- 画面上部のサマリーを描画する ---- */
     function renderSummary(customers) {
-      const totalCustomers = customers.length;
+      const total = customers.length;
+      const followCount = customers.filter(function(c) { return c.daysSince >= 30; }).length;
+      const recentCount = customers.filter(function(c) { return c.daysSince < 30; }).length;
+      const urgentCount = customers.filter(function(c) { return c.isUrgentTarget; }).length;
 
-      const followCustomers = customers.filter(function(customer) {
-        return customer.daysSinceLastContact >= 30;
-      }).length;
-
-      const recentCustomers = customers.filter(function(customer) {
-        return customer.daysSinceLastContact <= 30;
-      }).length;
-
-      document.getElementById("totalCustomers").textContent = totalCustomers;
-      document.getElementById("followCustomers").textContent = followCustomers;
-      document.getElementById("recentCustomers").textContent = recentCustomers;
+      document.getElementById("totalCustomers").textContent = total;
+      document.getElementById("followCustomers").textContent = followCount;
+      document.getElementById("recentCustomers").textContent = recentCount;
+      document.getElementById("urgentCustomers").textContent = urgentCount;
     }
 
-    function renderTable(customers) {
-      const tableBody = document.getElementById("customerTableBody");
-      tableBody.innerHTML = "";
+    /* ---- 「今すぐ確認すべき顧客」エリアを描画する ---- */
+    function renderUrgentSection(customers) {
+      const urgentList = customers.filter(function(c) { return c.isUrgentTarget; });
 
-      customers.forEach(function(customer) {
-        const row = document.createElement("tr");
+      if (urgentList.length === 0) {
+        document.getElementById("urgentSection").style.display = "none";
+        return;
+      }
 
-        row.innerHTML = `
-          <td>
-            <strong>${customer.customer}</strong>
-          </td>
-          <td>${customer.lastContactDate}</td>
-          <td>${customer.daysSinceLastContact}日</td>
-          <td>${customer.contactCount}回</td>
-          <td>
-            ${customer.latestTitle}
-            <div class="small">直近の予定</div>
-          </td>
-          <td>
-            <span class="status ${customer.statusClassName}">
-              ${customer.statusText}
-            </span>
-          </td>
-        `;
+      document.getElementById("urgentSection").style.display = "block";
+      const container = document.getElementById("urgentCards");
+      container.innerHTML = "";
 
-        tableBody.appendChild(row);
+      urgentList.forEach(function(c) {
+        /* 90日以上なら「今すぐ電話」、それ以外（60日以上の高額）なら「今週中に」 */
+        const isVeryUrgent = c.daysSince >= 90;
+        const actionText = isVeryUrgent
+          ? "今すぐ電話 / メールでアポを入れる"
+          : "今週中にアポを入れる";
+
+        const card = document.createElement("div");
+        card.className = "urgent-customer-card" + (isVeryUrgent ? "" : " type-priority");
+
+        const highValueBadge = c.isHighValue
+          ? '<span class="label-highvalue">高額取引</span>'
+          : "";
+
+        card.innerHTML =
+          '<div class="urgent-customer-name">' + c.customer + highValueBadge + "</div>" +
+          '<div class="urgent-customer-meta">最終接点: ' + c.lastContactDate + "（<strong>" + c.daysSince + "日前</strong>）</div>" +
+          '<div class="urgent-customer-meta">取引金額: <strong>' + formatAmount(c.amount) + "</strong></div>" +
+          '<div><span class="urgent-action' + (isVeryUrgent ? "" : " type-priority") + '">→ ' + actionText + "</span></div>";
+
+        container.appendChild(card);
       });
     }
 
-    const customers = createCustomerSummary(calendarEvents);
+    /* ---- メインのテーブルを描画する ---- */
+    function renderTable(customers) {
+      const tbody = document.getElementById("customerTableBody");
+      tbody.innerHTML = "";
 
+      customers.forEach(function(c, index) {
+        /* ステータスに応じて行の背景色を変える */
+        var rowClass = "";
+        if (c.statusPriority === 1) rowClass = "row-urgent";
+        else if (c.statusPriority === 2) rowClass = "row-priority";
+        else if (c.statusPriority === 3) rowClass = "row-follow";
+
+        /* 高額取引ラベルのHTML */
+        const highValueBadge = c.isHighValue
+          ? '<span class="label-highvalue">高額取引</span>'
+          : "";
+
+        /* 接点履歴のHTML（details / summary で開閉） */
+        const historyItems = c.events.map(function(ev) {
+          return (
+            '<li class="history-item">' +
+            '<span class="history-date">' + ev.date + "</span>" +
+            '<span class="history-type">' + ev.type + "</span>" +
+            ev.title +
+            '<div class="history-memo">' + ev.memo + "</div>" +
+            "</li>"
+          );
+        }).join("");
+
+        const row = document.createElement("tr");
+        if (rowClass) row.className = rowClass;
+
+        row.innerHTML =
+          "<td><span class='rank-num'>" + (index + 1) + "</span></td>" +
+          "<td><strong>" + c.customer + "</strong>" + highValueBadge + "</td>" +
+          "<td>" + c.lastContactDate + "</td>" +
+          "<td><strong>" + c.daysSince + "日</strong></td>" +
+          "<td>" + c.contactCount + "回</td>" +
+          "<td><strong>" + formatAmount(c.amount) + "</strong></td>" +
+          "<td>" + c.latestTitle + "</td>" +
+          "<td><span class='status " + c.statusClassName + "'>" + c.statusText + "</span></td>" +
+          "<td>" +
+            "<details>" +
+              "<summary>接点履歴を見る（" + c.contactCount + "件）</summary>" +
+              "<ul class='history-list'>" + historyItems + "</ul>" +
+            "</details>" +
+          "</td>";
+
+        tbody.appendChild(row);
+      });
+    }
+
+    /* ---- メイン処理：集計して画面を描く ---- */
+    const customers = buildCustomerList(calendarEvents);
     renderSummary(customers);
+    renderUrgentSection(customers);
     renderTable(customers);
   </script>
 </body>
